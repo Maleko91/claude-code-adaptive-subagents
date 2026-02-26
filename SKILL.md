@@ -1,11 +1,13 @@
 ---
 name: claude-code-adaptive-subagents
-description: Delegate subtasks to cheaper models via the Task tool. Route by signal, fan out independent work in parallel, escalate on failure. Use when a prompt contains separable subtasks or when a cheaper model can handle part of the work.
+description: Optimize token cost for coding tasks by routing subtasks to the right model tier. Applies to feature implementation, bug fixes, refactoring, test writing, code search, file lookup, architecture design, security review, debugging, documentation updates, and any multi-step request. Delegates cheap work to Haiku, standard coding to Sonnet, and complex planning to Opus. Fans out independent subtasks in parallel.
 ---
 
 # Adaptive Subagent Routing
 
 Delegate to the cheapest model that satisfies quality. Skip delegation when the task fits in one short response.
+
+**Transparency rule:** Before each delegation, output a single line: `> Routing to {Model}: {brief reason}` so the user sees what's happening.
 
 ## Routing Signals
 
