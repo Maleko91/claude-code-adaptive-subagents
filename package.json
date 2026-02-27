@@ -1,0 +1,21 @@
+{
+  "name": "adaptive-subagents",
+  "version": "1.1.0",
+  "description": "Claude Code skill for adaptive subagent routing — delegates subtasks to the cheapest model tier that satisfies quality.",
+  "bin": "./bin/install.js",
+  "files": [
+    "bin",
+    "adaptive-subagents"
+  ],
+  "keywords": [
+    "claude-code",
+    "skill",
+    "subagent",
+    "routing",
+    "token-optimization"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

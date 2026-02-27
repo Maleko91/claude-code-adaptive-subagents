@@ -1,6 +1,6 @@
 ---
 name: adaptive-subagents
-user-invocable: true
+user-invokable: true
 description: Optimize token cost for coding tasks by routing subtasks to the right model tier. Applies to feature implementation, bug fixes, refactoring, test writing, code search, file lookup, architecture design, security review, debugging, documentation updates, and any multi-step request. Delegates cheap work to Haiku, standard coding to Sonnet, and complex planning to Opus. Fans out independent subtasks in parallel. Logs all delegations to routing-log.md.
 ---
 
@@ -9,23 +9,6 @@ description: Optimize token cost for coding tasks by routing subtasks to the rig
 Delegate to the cheapest model that satisfies quality. Skip delegation when the task fits in one short response.
 
 **Transparency rule:** Before each delegation, output a single line: `> Routing to {Model}: {brief reason}` so the user sees what's happening.
-
-## Per-Subtask Routing (Critical)
-
-Do NOT route once and use the same model for an entire multi-step task. Instead:
-
-1. **Decompose first.** Break the user's request into a todo list of subtasks.
-2. **Route each subtask independently.** Evaluate complexity per item — most items will be cheaper than the overall task.
-3. **Downgrade after planning.** If Opus produces a plan, the remaining implementation steps go to Sonnet. Formatting, file lookups, and cleanup go to Haiku.
-
-Example — user asks "design and implement a caching layer":
-- Plan the architecture → Opus
-- Search for existing cache usage → Haiku
-- Implement the cache module → Sonnet
-- Write tests → Sonnet
-- Update docs → Haiku
-
-Each of those gets its own `> Routing to {Model}:` line and its own routing-log entry.
 
 ## Cost Ratios
 
@@ -134,14 +117,10 @@ After all phases return, review outputs for conflicts before applying.
 
 ## Routing Log
 
-After **each** Task tool call returns, immediately append a row to `routing-log.md` **in the current working directory**. Create the file with a header row if it doesn't exist.
+After each delegation, append an entry to `routing-log.md` (in this skill's directory) using this format:
 
-Format:
-
-```markdown
-| Task | Model | Category | Estimated Savings |
-|------|-------|----------|-------------------|
-| {brief task description} | {model} | {category} | {estimated savings} |
+```
+| {timestamp} | {brief task description} | {model} | {category} | {estimated savings} |
 ```
 
 **Category** is one of: search, format, implement, refactor, test, debug, plan, security, docs.
@@ -170,7 +149,7 @@ On the **first invocation** of this skill in a project, check if the project's `
 ```markdown
 ## Subagent Routing
 - Before every Task tool call, output: `> Routing to {Model}: {reason}`
-- After every Task tool call, append a row to routing-log.md in the working directory.
+- After every Task tool call, append a row to the routing-log.md in the adaptive-subagents skill directory.
 - Use the adaptive-subagents skill routing table to pick the cheapest model that satisfies quality.
 ```
 
@@ -183,10 +162,8 @@ Do this **once per project**. If both the CLAUDE.md section and the hook already
 
 ## Mandatory — Do Not Skip
 
-These rules apply to EVERY Task tool call. Non-negotiable.
+These rules apply to EVERY delegation. Non-negotiable.
 
-1. **Decompose** the request into subtasks and route each one independently.
-2. **Before** every Task call → output `> Routing to {Model}: {reason}`
-3. **After** every Task call → append a row to `routing-log.md` in the working directory.
-4. **Downgrade** after planning — implementation goes to Sonnet, cleanup to Haiku.
-5. Never route to a higher tier than the subtask requires — cost efficiency is the point of this skill.
+1. **Before** every Task call → output `> Routing to {Model}: {reason}`
+2. **After** every Task call → append a row to `routing-log.md`
+3. Never route to a higher tier than the task requires — cost efficiency is the point of this skill.

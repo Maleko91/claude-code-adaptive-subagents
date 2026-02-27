@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "adaptive-subagents": {
+      "source": "maleko91/claude-code-adaptive-subagents",
+      "sourceType": "github",
+      "computedHash": "537ec9884deb63dc774ded964c9eaffc060e9a9ded3c00eda19ef72708a8a097"
+    }
+  }
+}
