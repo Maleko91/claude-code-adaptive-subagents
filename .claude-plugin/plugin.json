@@ -1,9 +1,9 @@
 {
   "name": "adaptive-subagents",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Optimize token cost by routing subtasks to the cheapest model tier that satisfies quality. Delegates search/format to Haiku, implementation to Sonnet, and architecture/security to Opus.",
   "author": {
-    "name": "iamyegor"
+    "name": "maleko91"
   },
   "license": "MIT",
   "keywords": [
@@ -31,7 +31,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "A subagent Task just completed. Append ONE row to routing-log.md using Edit (never delegate this). If the file does not exist, create it with this exact header first:\n\n| Model | Category | Saved | Task |\n|-------|----------|-------|------|\n\nThen append:\n| {model} | {category} | {multiplier: 30x/6x/—} | {brief description} |\n\nDo NOT add a Timestamp column. Do NOT write verbose text in the Saved column — just the multiplier."
+            "prompt": "A subagent Task just completed. Log it to routing-log.md yourself (do not delegate this step).\n\nStep 1: If routing-log.md does not exist yet, use the Write tool to create it with this content:\n| Model | Category | Saved | Task |\n|-------|----------|-------|------|\n\nStep 2: Use the Edit tool to append one row to routing-log.md:\n| {model} | {category} | {30x or 6x or —} | {brief description} |\n\nUse Haiku=30x, Sonnet=6x, Opus=—. No extra columns."
           }
         ]
       }
