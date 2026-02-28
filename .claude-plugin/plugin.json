@@ -1,0 +1,40 @@
+{
+  "name": "adaptive-subagents",
+  "version": "2.0.0",
+  "description": "Optimize token cost by routing subtasks to the cheapest model tier that satisfies quality. Delegates search/format to Haiku, implementation to Sonnet, and architecture/security to Opus.",
+  "author": {
+    "name": "iamyegor"
+  },
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "subagent",
+    "routing",
+    "token-optimization",
+    "cost-saving"
+  ],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "You are about to call the Task tool. Before proceeding:\n1. Have you picked the cheapest model tier that satisfies quality? (Haiku for search/format/lookup, Sonnet for implementation/tests, Opus only for planning/architecture/security/ambiguous scope)\n2. Output '**Routing to {Model}:** {brief reason}' on its own line so the user sees the delegation."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "A subagent Task just completed. Append a row to routing-log.md NOW:\n| {task description} | {model} | {category} | {savings vs Opus} |\nUse the Edit tool directly — do NOT delegate the log write to a subagent."
+          }
+        ]
+      }
+    ]
+  }
+}

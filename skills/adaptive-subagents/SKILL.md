@@ -8,7 +8,7 @@ description: Optimize token cost for coding tasks by routing subtasks to the rig
 
 Delegate to the cheapest model that satisfies quality. Skip delegation when the task fits in one short response.
 
-**Transparency rule:** Before each delegation, output a single line: `> Routing to {Model}: {brief reason}` so the user sees what's happening.
+**Transparency rule:** The plugin's PreToolUse hook prompts you to output `**Routing to {Model}:** {brief reason}` before each delegation. Use bold text, not `>` blockquote (blockquotes indent and reduce visibility).
 
 ## Per-Subtask Routing (Critical)
 
@@ -23,9 +23,10 @@ Example — user asks "design and implement a caching layer":
 - Search for existing cache usage → Haiku
 - Implement the cache module → Sonnet
 - Write tests → Sonnet
-- Update docs → Haiku
+- Update internal dev notes → Haiku
+- Write public API docs → Sonnet (escalated: public-facing)
 
-Each of those gets its own `> Routing to {Model}:` line and its own routing-log entry.
+Each of those gets its own `**Routing to {Model}:**` line and its own routing-log entry.
 
 ## Cost Ratios
 
@@ -51,6 +52,9 @@ Start → estimate complexity
   ├─ Complex (architecture, migration, security, ambiguous scope)?
   │   → Opus (include "ultrathink" in prompt for deep reasoning)
   │
+  ├─ High-stakes output (public-facing, security-sensitive, production-critical)?
+  │   → Escalate +1 tier (Haiku→Sonnet, Sonnet→Opus)
+  │
   ├─ Failed twice at current tier?
   │   → Escalate +1 tier
   │
@@ -75,8 +79,8 @@ Skip delegation entirely when:
 | File listing, structure | Debugging with stack traces | Multi-system design |
 | Typo fixes, renames | Code generation (< 500 lines) | Performance analysis |
 
-Escalate +1 tier on: ambiguous requirements, production-critical paths, or 2 consecutive failures.
-Downgrade after: planning completes, or remaining work is formatting/summarization.
+Escalate +1 tier on: ambiguous requirements, public-facing/security-sensitive output, production-critical paths, or 2 consecutive failures.
+Downgrade after: planning completes, or remaining work is internal formatting/summarization.
 
 ## Delegation
 
@@ -129,28 +133,22 @@ After all phases return, review outputs for conflicts before applying.
 
 - Opus delegations use extended thinking by default — this is intentional for planning tasks.
 - For complex architecture or security reviews, include "ultrathink" in the Opus prompt to signal deep reasoning.
-- Don't route to Opus just because a task is important — route based on **complexity**. A critical but simple bug fix still goes to Sonnet.
+- Don't route to Opus just because a task is important — route based on **complexity**, then apply the criticality escalation. A critical but simple bug fix still goes to Sonnet; a simple doc task that's public-facing escalates from Haiku to Sonnet, not to Opus.
 - Haiku and Sonnet don't benefit from extended thinking prompts — don't include thinking keywords in their prompts.
 
 ## Routing Log
 
-After **each** Task tool call returns, immediately append a row to `routing-log.md` **in the current working directory**. Create the file with a header row if it doesn't exist.
-
-Format:
+The plugin's PostToolUse hook prompts you to log each delegation. Append rows to `routing-log.md` in the current working directory (create with header if missing). Use Edit directly — don't delegate the log write.
 
 ```markdown
-| Task | Model | Category | Estimated Savings |
-|------|-------|----------|-------------------|
-| {brief task description} | {model} | {category} | {estimated savings} |
+| Task | Model | Category | Saved |
+|------|-------|----------|-------|
+| {brief task description} | {model} | {category} | {multiplier} |
 ```
 
-**Category** is one of: search, format, implement, refactor, test, debug, plan, security, docs.
+**Category:** search, format, implement, refactor, test, debug, plan, security, docs.
 
-**Estimated savings** uses the cost ratio multiplier. If a task was routed to Haiku that could have gone to Opus, the saving is `~30x`. If routed to Sonnet instead of Opus, `~6x`. If routed to the highest necessary tier, `1x (baseline)`.
-
-Estimate task size as: small (~500 tokens), medium (~2000 tokens), large (~5000 tokens). Multiply by the cost difference to get an approximate token saving.
-
-Example: a search task (small, ~500 tokens) routed to Haiku instead of Opus saves approximately `500 × 29 = ~14,500 equivalent Opus tokens`.
+**Saved:** `30x` if Haiku instead of Opus, `6x` if Sonnet instead of Opus, `—` if already at the highest necessary tier.
 
 ## Guardrails
 
@@ -160,33 +158,10 @@ Example: a search task (small, ~500 tokens) routed to Haiku instead of Opus save
 - Max 3 sequential delegations per user request. No limit on parallel.
 - Always review subagent outputs before applying — check for conflicts, hallucinated paths, and incomplete work.
 
-## First-Use Setup
-
-On the **first invocation** of this skill in a project, check if the project's `.claude/CLAUDE.md` contains a `## Subagent Routing` section. If it does not:
-
-1. Read the existing `.claude/CLAUDE.md` (or create it if it doesn't exist).
-2. Append the following block:
-
-```markdown
-## Subagent Routing
-- Before every Task tool call, output: `> Routing to {Model}: {reason}`
-- After every Task tool call, append a row to routing-log.md in the working directory.
-- Use the adaptive-subagents skill routing table to pick the cheapest model that satisfies quality.
-```
-
-3. Next, check if `.claude/settings.json` exists and contains a `PostToolUse` hook with matcher `"Task"`. If it does not:
-   - Read the existing `.claude/settings.json` (or create `{ "hooks": {} }` if it doesn't exist).
-   - Merge the hook config from `hooks.json` (in this skill's directory) into the project's `.claude/settings.json` under `hooks.PostToolUse`. Preserve any existing hooks — append, don't replace.
-4. Tell the user: `> Setup: Added Subagent Routing rules to .claude/CLAUDE.md and PostToolUse hook to .claude/settings.json.`
-
-Do this **once per project**. If both the CLAUDE.md section and the hook already exist, skip silently.
-
-## Mandatory — Do Not Skip
-
-These rules apply to EVERY Task tool call. Non-negotiable.
+## Core Rules
 
 1. **Decompose** the request into subtasks and route each one independently.
-2. **Before** every Task call → output `> Routing to {Model}: {reason}`
-3. **After** every Task call → append a row to `routing-log.md` in the working directory.
-4. **Downgrade** after planning — implementation goes to Sonnet, cleanup to Haiku.
-5. Never route to a higher tier than the subtask requires — cost efficiency is the point of this skill.
+2. **Downgrade** after planning — implementation goes to Sonnet, cleanup to Haiku.
+3. Never route to a higher tier than the subtask requires — cost efficiency is the point of this plugin.
+
+Routing transparency and log writes are enforced by the plugin's PreToolUse and PostToolUse hooks.
