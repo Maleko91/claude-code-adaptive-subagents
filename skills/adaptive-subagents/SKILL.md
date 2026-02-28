@@ -8,7 +8,9 @@ description: Optimize token cost for coding tasks by routing subtasks to the rig
 
 Delegate to the cheapest model that satisfies quality. Skip delegation when the task fits in one short response.
 
-**Transparency rule:** The plugin's PreToolUse hook prompts you to output `**Routing to {Model}:** {brief reason}` before each delegation. Use bold text, not `>` blockquote (blockquotes indent and reduce visibility).
+**Do NOT modify project files:** Never write routing rules to CLAUDE.md. Never add hooks to settings.json. This skill is loaded automatically by the plugin — no setup steps are needed.
+
+**Transparency rule:** Before each delegation, output `**Routing to {Model}:** {brief reason}` on its own line so the user sees it. Use bold text, not `>` blockquote (blockquotes indent and reduce visibility).
 
 ## Per-Subtask Routing (Critical)
 
@@ -38,38 +40,7 @@ Each of those gets its own `**Routing to {Model}:**` line and its own routing-lo
 
 Always route to the cheapest tier that delivers acceptable quality. The savings compound — a 10-delegation task routed to Haiku instead of Opus saves ~97% on those calls.
 
-## Routing Decision Tree
-
-```
-Start → estimate complexity
-  │
-  ├─ Trivial (search, format, lookup, single-line fix)?
-  │   → Haiku
-  │
-  ├─ Standard (implement, bug fix, refactor < 10 files, write tests)?
-  │   → Sonnet
-  │
-  ├─ Complex (architecture, migration, security, ambiguous scope)?
-  │   → Opus (include "ultrathink" in prompt for deep reasoning)
-  │
-  ├─ High-stakes output (public-facing, security-sensitive, production-critical)?
-  │   → Escalate +1 tier (Haiku→Sonnet, Sonnet→Opus)
-  │
-  ├─ Failed twice at current tier?
-  │   → Escalate +1 tier
-  │
-  └─ Planning complete, remaining work is implementation/formatting?
-      → Downgrade to Sonnet or Haiku
-```
-
-### Don't Delegate
-
-Skip delegation entirely when:
-- The task is under ~100 tokens of useful output (single-line edits, variable renames, quick answers)
-- You already have the answer in context
-- The overhead of spawning a subagent exceeds the work itself
-
-## Routing Signals
+## Routing Rules
 
 | Haiku | Sonnet | Opus |
 |---|---|---|
@@ -79,8 +50,18 @@ Skip delegation entirely when:
 | File listing, structure | Debugging with stack traces | Multi-system design |
 | Typo fixes, renames | Code generation (< 500 lines) | Performance analysis |
 
-Escalate +1 tier on: ambiguous requirements, public-facing/security-sensitive output, production-critical paths, or 2 consecutive failures.
-Downgrade after: planning completes, or remaining work is internal formatting/summarization.
+**Escalate +1 tier:** ambiguous requirements, public-facing output, security-sensitive, production-critical, or 2 consecutive failures.
+**Downgrade:** after planning completes, or remaining work is formatting/summarization.
+
+For Opus: include "ultrathink" in prompt for deep reasoning. Haiku/Sonnet don't benefit from thinking keywords.
+
+### Don't Delegate
+
+Skip delegation entirely when:
+- The task is under ~100 tokens of useful output (single-line edits, variable renames, quick answers)
+- You already have the answer in context
+- The overhead of spawning a subagent exceeds the work itself
+- The subtask needs the same model tier you're already running on — handle it inline instead of paying subagent overhead
 
 ## Delegation
 
@@ -117,51 +98,12 @@ When a request contains independent subtasks, launch multiple subagents in a sin
 | Two features touching different modules | Yes | Independent code paths |
 | Refactor + anything in same files | **No** | Refactor changes the baseline |
 
-**Mixed dependency example** — user asks "add validation, write its tests, and fix the unrelated typo in config.py":
-```
-# Phase 1 — independent work, launch in parallel:
-Task(model: "sonnet", prompt: "Add input validation to UserController. Constraints: ...")
-Task(model: "haiku", prompt: "Fix typo on line 12 of config.py: change 'databse' to 'database'")
-
-# Phase 2 — depends on Phase 1 validation output:
-Task(model: "sonnet", prompt: "Write unit tests for the validation added to UserController. The validation does: {summary from Phase 1}. Test cases: ...")
-```
-
 After all phases return, review outputs for conflicts before applying.
-
-## Thinking Budget
-
-- Opus delegations use extended thinking by default — this is intentional for planning tasks.
-- For complex architecture or security reviews, include "ultrathink" in the Opus prompt to signal deep reasoning.
-- Don't route to Opus just because a task is important — route based on **complexity**, then apply the criticality escalation. A critical but simple bug fix still goes to Sonnet; a simple doc task that's public-facing escalates from Haiku to Sonnet, not to Opus.
-- Haiku and Sonnet don't benefit from extended thinking prompts — don't include thinking keywords in their prompts.
-
-## Routing Log
-
-The plugin's PostToolUse hook prompts you to log each delegation. Append rows to `routing-log.md` in the current working directory (create with header if missing). Use Edit directly — don't delegate the log write.
-
-```markdown
-| Task | Model | Category | Saved |
-|------|-------|----------|-------|
-| {brief task description} | {model} | {category} | {multiplier} |
-```
-
-**Category:** search, format, implement, refactor, test, debug, plan, security, docs.
-
-**Saved:** `30x` if Haiku instead of Opus, `6x` if Sonnet instead of Opus, `—` if already at the highest necessary tier.
 
 ## Guardrails
 
 - Max 2 retries per subagent, then escalate or ask the user.
-- Don't delegate tasks under ~100 tokens of useful output.
-- Hand implementation to Sonnet immediately after Opus planning.
 - Max 3 sequential delegations per user request. No limit on parallel.
 - Always review subagent outputs before applying — check for conflicts, hallucinated paths, and incomplete work.
 
-## Core Rules
-
-1. **Decompose** the request into subtasks and route each one independently.
-2. **Downgrade** after planning — implementation goes to Sonnet, cleanup to Haiku.
-3. Never route to a higher tier than the subtask requires — cost efficiency is the point of this plugin.
-
-Routing transparency and log writes are enforced by the plugin's PreToolUse and PostToolUse hooks.
+Always output the routing line before delegating.

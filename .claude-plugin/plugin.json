@@ -31,7 +31,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "A subagent Task just completed. Append a row to routing-log.md NOW:\n| {task description} | {model} | {category} | {savings vs Opus} |\nUse the Edit tool directly — do NOT delegate the log write to a subagent."
+            "prompt": "A subagent Task just completed. Append ONE row to routing-log.md using Edit (never delegate this). If the file does not exist, create it with this exact header first:\n\n| Model | Category | Saved | Task |\n|-------|----------|-------|------|\n\nThen append:\n| {model} | {category} | {multiplier: 30x/6x/—} | {brief description} |\n\nDo NOT add a Timestamp column. Do NOT write verbose text in the Saved column — just the multiplier."
           }
         ]
       }
