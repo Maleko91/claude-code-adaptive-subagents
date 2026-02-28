@@ -1,6 +1,6 @@
 {
   "name": "adaptive-subagents",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Optimize token cost by routing subtasks to the cheapest model tier that satisfies quality. Delegates search/format to Haiku, implementation to Sonnet, and architecture/security to Opus.",
   "author": {
     "name": "maleko91"
@@ -23,24 +23,6 @@
             "prompt": "You are about to call the Task tool. Before proceeding:\n1. Have you picked the cheapest model tier that satisfies quality? (Haiku for search/format/lookup, Sonnet for implementation/tests, Opus only for planning/architecture/security/ambiguous scope)\n2. Output '**Routing to {Model}:** {brief reason}' on its own line so the user sees the delegation."
           }
         ]
-      },
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "You are about to invoke a skill. While following the skill's workflow, delegate independent subtasks to subagents via the Task tool using the cheapest model that satisfies quality:\n- Haiku: search, format, lookup, simple edits\n- Sonnet: implementation, tests, refactoring\n- Opus: architecture, security, ambiguous scope\nOutput '**Routing to {Model}:** {brief reason}' before each delegation. Respect the skill's own instructions—only delegate work that does not require the skill's full context to complete."
-          }
-        ]
-      },
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "DIAGNOSTIC TEST — Output the exact line below before proceeding:\n[ADAPTIVE-SUBAGENTS HOOK FIRED]"
-          }
-        ]
       }
     ],
     "PostToolUse": [
@@ -50,15 +32,6 @@
           {
             "type": "prompt",
             "prompt": "A subagent Task just completed. Log it to routing-log.md yourself (do not delegate this step).\n\nStep 1: If routing-log.md does not exist yet, use the Write tool to create it with this content:\n| Model | Category | Saved | Task |\n|-------|----------|-------|------|\n\nStep 2: Use the Edit tool to append one row to routing-log.md:\n| {model} | {category} | {30x or 6x or —} | {brief description} |\n\nUse Haiku=30x, Sonnet=6x, Opus=—. No extra columns."
-          }
-        ]
-      },
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "A skill has just been activated. Reminder: as you work through this skill's workflow, any independent subtask (file search, code generation, test execution, formatting) should be delegated to a subagent via the Task tool using the cheapest sufficient model—Haiku for search/format, Sonnet for implementation/tests, Opus only for architecture/security. Do not perform inline what a cheaper subagent could handle independently."
           }
         ]
       }
