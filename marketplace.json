@@ -1,0 +1,13 @@
+{
+  "name": "maleko91-plugins",
+  "owner": {
+    "name": "maleko91"
+  },
+  "plugins": [
+    {
+      "name": "adaptive-subagents",
+      "source": "./",
+      "description": "Adaptive subagent routing — delegates subtasks to the cheapest model tier that satisfies quality."
+    }
+  ]
+}
