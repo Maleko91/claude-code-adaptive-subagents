@@ -32,6 +32,15 @@
             "prompt": "You are about to invoke a skill. While following the skill's workflow, delegate independent subtasks to subagents via the Task tool using the cheapest model that satisfies quality:\n- Haiku: search, format, lookup, simple edits\n- Sonnet: implementation, tests, refactoring\n- Opus: architecture, security, ambiguous scope\nOutput '**Routing to {Model}:** {brief reason}' before each delegation. Respect the skill's own instructions—only delegate work that does not require the skill's full context to complete."
           }
         ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "DIAGNOSTIC TEST — Output the exact line below before proceeding:\n[ADAPTIVE-SUBAGENTS HOOK FIRED]"
+          }
+        ]
       }
     ],
     "PostToolUse": [
