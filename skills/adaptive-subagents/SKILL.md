@@ -1,10 +1,14 @@
 ---
 name: adaptive-subagents
 user-invokable: true
-description: "Optimize token cost by routing Agent tool delegations to the cheapest sufficient model.\nTRIGGER when: about to use the Agent tool, any multi-step task, implementation, debugging, refactoring, search, exploration, test writing, code review, or any task that could be decomposed into subtasks.\nDO NOT TRIGGER when: single-line fix, trivial question, or user says 'no routing'."
+description: "Optimize token cost by routing work to the cheapest sufficient model via the Agent tool.\nTRIGGER when: any task that touches code or files — editing, adding content, implementation, debugging, refactoring, search, exploration, test writing, code review, multi-file changes, or any task requiring reading before writing.\nDO NOT TRIGGER when: single-line fix, trivial question, or user says 'no routing'."
 ---
 
 # Adaptive Subagent Routing
+
+## FIRST: Decompose Before Acting
+
+**Do NOT start working on the task directly.** Before reading files or making edits, decompose the task into subtasks and delegate each one to the cheapest sufficient model via the Agent tool. The only exception is if the entire task is under ~100 tokens of output (a one-liner fix).
 
 ## Quick Decision (apply to EVERY delegation)
 
