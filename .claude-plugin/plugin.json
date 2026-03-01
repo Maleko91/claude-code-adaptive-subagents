@@ -1,6 +1,6 @@
 {
   "name": "adaptive-subagents",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Optimize token cost by routing subtasks to the cheapest model tier that satisfies quality. Delegates search/format to Haiku, implementation to Sonnet, and architecture/security to Opus.",
   "author": {
     "name": "maleko91"
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "You are about to call the Task tool. Before proceeding:\n1. Pick the cheapest model tier that satisfies quality: Haiku for search/format/lookup, Sonnet for implementation/tests, Opus only for planning/architecture/security/ambiguous scope.\n2. If a BMAD or other workflow skill is orchestrating, respect its task decomposition — do NOT restructure the work. Apply model-tier routing to each subtask it defines. The workflow decides WHAT to do; this routing decides WHICH MODEL does it.\n3. Output '**Routing to {Model}:** {brief reason}' on its own line so the user sees the delegation."
+            "prompt": "You are about to call the Task tool. Before proceeding:\n1. Pick the cheapest model tier that satisfies quality: Haiku for search/format/lookup, Sonnet for implementation/tests, Opus only for planning/architecture/security/ambiguous scope.\n2. If BMAD or other workflow skill is orchestrating, respect its task decomposition — do NOT restructure the work. Apply model-tier routing to each subtask it defines. The workflow decides WHAT to do; this routing decides WHICH MODEL does it.\n3. Output '**Routing to {Model}:** {brief reason}' on its own line so the user sees the delegation."
           }
         ]
       }

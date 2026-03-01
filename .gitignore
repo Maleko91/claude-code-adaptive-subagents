@@ -1,0 +1,5 @@
+# Local workspace config — should not be distributed with the plugin
+.claude/settings.json
+
+# Routing logs generated at runtime
+routing-log.md
