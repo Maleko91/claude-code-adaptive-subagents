@@ -1,6 +1,6 @@
 {
   "name": "adaptive-subagents",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "description": "Optimize token cost by routing all actionable work to the cheapest model tier that satisfies quality. Delegates mechanical lookups to Haiku, implementation/comprehension to Sonnet, and architecture/security to Opus.",
   "author": {
     "name": "maleko91"
@@ -12,18 +12,5 @@
     "routing",
     "token-optimization",
     "cost-saving"
-  ],
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "^Agent$",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node -e \"var d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>require('fs').appendFileSync('routing.log',d+'\\n'))\""
-          }
-        ]
-      }
-    ]
-  }
+  ]
 }

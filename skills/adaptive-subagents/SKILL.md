@@ -1,7 +1,7 @@
 ---
 name: adaptive-subagents
 user-invokable: true
-description: Route all actionable work to the cheapest model tier that satisfies quality. Haiku for search/format, Sonnet for implementation/tests, Opus for architecture/security.
+description: "Optimize token cost by routing Agent tool delegations to the cheapest sufficient model.\nTRIGGER when: about to use the Agent tool, any multi-step task, implementation, debugging, refactoring, search, exploration, test writing, code review, or any task that could be decomposed into subtasks.\nDO NOT TRIGGER when: single-line fix, trivial question, or user says 'no routing'."
 ---
 
 # Adaptive Subagent Routing
@@ -125,6 +125,16 @@ If the user says any of the following, respect it for the current request:
 - **"use Opus"** / **"use Sonnet"** / **"use Haiku"** — force that tier for all delegations.
 
 Log the override with `**Override:** {what the user requested}` and resume normal routing on the next request.
+
+## Routing Log
+
+After each routing decision, append a line to `routing.log` in the project root using the Bash tool:
+
+```
+echo "{model} | {agent_type or inline} | {estimated savings vs Opus, e.g. ~93%} | {brief task description}" >> routing.log
+```
+
+Log every `**Routing to**` and `**Staying on**` decision.
 
 ## Guardrails
 
