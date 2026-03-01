@@ -1,26 +1,70 @@
 ---
 name: adaptive-subagents
-user-invocable: true
-description: Optimize token cost for coding tasks by routing subtasks to the right model tier. Applies to feature implementation, bug fixes, refactoring, test writing, code search, file lookup, architecture design, security review, debugging, documentation updates, and any multi-step request. Delegates cheap work to Haiku, standard coding to Sonnet, and complex planning to Opus. Fans out independent subtasks in parallel. Logs all delegations to routing-log.md.
+user-invokable: true
+description: Route all actionable work to the cheapest model tier that satisfies quality. Haiku for search/format, Sonnet for implementation/tests, Opus for architecture/security.
 ---
 
 # Adaptive Subagent Routing
 
-Delegate to the cheapest model that satisfies quality. Skip delegation when the task fits in one short response.
+## Quick Decision (apply to EVERY delegation)
 
-**Do NOT modify project files:** Never write routing rules to CLAUDE.md. Never add hooks to settings.json. This skill is loaded automatically by the plugin — no setup steps are needed.
+**Default: Haiku.** Escalate only with reason.
 
-**Transparency rule:** Before each delegation, output `**Routing to {Model}:** {brief reason}` on its own line so the user sees it. Use bold text, not `>` blockquote (blockquotes indent and reduce visibility).
+1. Is this a **mechanical lookup**? (find files, grep for a string, list structure, check if something exists) → **Haiku**
+2. Does it require **comprehension or writing**? (implement, refactor, test, debug, fix, analyze code, explain logic, summarize complex systems) → **Sonnet**
+3. Is it **architectural, security-sensitive, or ambiguous**? → **Opus**
 
-## Per-Subtask Routing (Critical)
+**Haiku boundary:** Haiku can *find* things and *format* things. It cannot *understand* or *reason about* code. If the task requires reading code and making a judgment, that's Sonnet.
 
-Do NOT route once and use the same model for an entire multi-step task. Instead:
+If unsure between two tiers, pick the cheaper one. Escalate after failure, not before.
 
-1. **Decompose first.** Break the user's request into a todo list of subtasks.
-2. **Route each subtask independently.** Evaluate complexity per item — most items will be cheaper than the overall task.
-3. **Downgrade after planning.** If Opus produces a plan, the remaining implementation steps go to Sonnet. Formatting, file lookups, and cleanup go to Haiku.
+Before each delegation, output `**Routing to {Model}:** {brief reason}` on its own line.
+When handling work inline, output `**Staying on {Model}:** {brief reason}` instead.
 
-Example — user asks "design and implement a caching layer":
+## When to Delegate vs Handle Inline
+
+**Always delegate to a cheaper tier** — the 3x–15x cost savings always outweigh subagent overhead.
+
+**Skip delegation** only when:
+- The output is under ~100 tokens (one-liner answers, quick fixes already in context)
+- The overhead of spawning a subagent exceeds the work itself
+- The subtask needs the same model tier you're already on **and** context is already available
+
+## Routing Rules
+
+| Haiku (1x) | Sonnet (3x) | Opus (15x) |
+|---|---|---|
+| File search, grep, glob | Implementation, bug fix | Architecture, migration |
+| Format/lint existing text | Refactor (< 10 files) | Security review |
+| Check if file/string exists | Test writing | Ambiguous/conflicting scope |
+| List files, directory structure | Debugging with stack traces | Multi-system design |
+| Literal string replacements | Code generation (< 500 lines) | Performance analysis |
+| | Summarize/analyze code logic | |
+| | Rename across multiple files | |
+| | Code review, explain code | |
+
+**Escalate +1 tier:** ambiguous requirements, public-facing output, security-sensitive, production-critical, or 2 consecutive failures.
+**Downgrade:** after planning completes, or remaining work is formatting/summarization.
+
+## Cost Ratios
+
+| Model | Relative Cost | Pricing |
+|---|---|---|
+| Haiku (1x) | Baseline | ~$1/M input, $5/M output |
+| Sonnet (3x) | 3x Haiku | ~$3/M input, $15/M output |
+| Opus (15x) | 15x Haiku | ~$15/M input, $75/M output |
+
+A 10-delegation task routed to Haiku instead of Opus saves ~93% on those calls.
+
+## Per-Subtask Routing
+
+When a request involves multiple steps:
+
+1. **Decompose first.** Break the request into a todo list of subtasks.
+2. **Route each subtask independently.** Most items are cheaper than the overall task.
+3. **Downgrade after planning.** If Opus produces a plan, implementation goes to Sonnet. Lookups and cleanup go to Haiku.
+
+Example — "design and implement a caching layer":
 - Plan the architecture → Opus
 - Search for existing cache usage → Haiku
 - Implement the cache module → Sonnet
@@ -28,58 +72,32 @@ Example — user asks "design and implement a caching layer":
 - Update internal dev notes → Haiku
 - Write public API docs → Sonnet (escalated: public-facing)
 
-Each of those gets its own `**Routing to {Model}:**` line and its own routing-log entry.
-
-## Cost Ratios
-
-| Model | Relative Cost | Best For |
-|---|---|---|
-| Haiku (1x) | ~$0.25/M input, $1.25/M output | Read-only tasks, search, formatting |
-| Sonnet (5x) | ~$3/M input, $15/M output | Implementation, refactoring, tests |
-| Opus (30x) | ~$15/M input, $75/M output | Architecture, security, ambiguous scope |
-
-Always route to the cheapest tier that delivers acceptable quality. The savings compound — a 10-delegation task routed to Haiku instead of Opus saves ~97% on those calls.
-
-## Routing Rules
-
-| Haiku | Sonnet | Opus |
-|---|---|---|
-| Search, grep, lookup | Implementation, bug fix | Architecture, migration |
-| Formatting, summarize | Refactor (< 10 files) | Security review |
-| Simple validation | Test writing | Ambiguous/conflicting scope |
-| File listing, structure | Debugging with stack traces | Multi-system design |
-| Typo fixes, renames | Code generation (< 500 lines) | Performance analysis |
-
-**Escalate +1 tier:** ambiguous requirements, public-facing output, security-sensitive, production-critical, or 2 consecutive failures.
-**Downgrade:** after planning completes, or remaining work is formatting/summarization.
-
-For Opus: include "ultrathink" in prompt for deep reasoning. Haiku/Sonnet don't benefit from thinking keywords.
-
-### Don't Delegate
-
-Skip delegation entirely when:
-- The task is under ~100 tokens of useful output (single-line edits, variable renames, quick answers)
-- You already have the answer in context
-- The overhead of spawning a subagent exceeds the work itself
-- The subtask needs the same model tier you're already running on — handle it inline instead of paying subagent overhead
-
 ## Delegation
 
+Choose **agent type by task** and **model by complexity** independently.
+
+| Agent Type | Use When | Tools Available |
+|---|---|---|
+| `Explore` | Search, grep, read-only exploration | Read, Glob, Grep (no Edit/Write) |
+| `general-purpose` | Implementation, edits, multi-step work | All tools |
+| `Plan` | Architecture design, implementation planning | Read, Glob, Grep (no Edit/Write) |
+
+Combine freely — `Explore` + `haiku` for file lookups, `general-purpose` + `sonnet` for implementation, `Explore` + `sonnet` for complex investigation, `Plan` + `sonnet` for straightforward design.
+
 ```
-Task(subagent_type: "Explore", model: "haiku", prompt: "...")
-Task(subagent_type: "general-purpose", model: "sonnet", prompt: "...")
-Task(subagent_type: "Plan", model: "opus", prompt: "...")
+Agent(subagent_type: "Explore", model: "haiku", description: "...", prompt: "...")
+Agent(subagent_type: "general-purpose", model: "sonnet", description: "...", prompt: "...")
+Agent(subagent_type: "Explore", model: "sonnet", description: "...", prompt: "...")
+Agent(subagent_type: "Plan", model: "sonnet", description: "...", prompt: "...")
 ```
 
-Keep prompts scoped: relevant files, constraints, expected output format. Pass plan steps, not full conversation history.
+Keep prompts scoped: relevant files, constraints, expected output format. The `description` parameter is required — use a short 3-5 word summary.
 
 ### Expected Output Formats
 
-Tell each subagent what to return so the parent can integrate cleanly:
-
 | Tier | Expected Output |
 |---|---|
-| Haiku | File paths, grep results, short summaries, yes/no validations |
+| Haiku | File paths, grep results, existence checks, formatted text |
 | Sonnet | Code diffs, implementation files, test files, error analysis |
 | Opus | Numbered plan steps, architecture decisions with rationale, risk assessment |
 
@@ -87,7 +105,7 @@ Tell each subagent what to return so the parent can integrate cleanly:
 
 When a request contains independent subtasks, launch multiple subagents in a single message.
 
-**Before splitting, build a dependency graph.** List subtasks, then check: does any subtask need another's output, or do they modify the same file? If yes, those subtasks are dependent — run them sequentially, feeding earlier output into later prompts.
+**Before splitting, build a dependency graph.** Does any subtask need another's output, or do they modify the same file? If yes, run them sequentially.
 
 | Pattern | Parallel? | Why |
 |---|---|---|
@@ -100,10 +118,18 @@ When a request contains independent subtasks, launch multiple subagents in a sin
 
 After all phases return, review outputs for conflicts before applying.
 
+## User Overrides
+
+If the user says any of the following, respect it for the current request:
+- **"no routing"** / **"don't delegate"** — handle everything inline on the current model.
+- **"use Opus"** / **"use Sonnet"** / **"use Haiku"** — force that tier for all delegations.
+- **"skip logging"** — suppress routing-log entries for this request.
+
+Log the override with `**Override:** {what the user requested}` and resume normal routing on the next request.
+
 ## Guardrails
 
 - Max 2 retries per subagent, then escalate or ask the user.
-- Max 3 sequential delegations per user request. No limit on parallel.
+- Max 5 sequential delegations per user request. No limit on parallel.
 - Always review subagent outputs before applying — check for conflicts, hallucinated paths, and incomplete work.
-
-Always output the routing line before delegating.
+- **Do NOT modify project files:** Never write routing rules to CLAUDE.md. Never add hooks to settings.json. This skill is loaded automatically by the plugin.
