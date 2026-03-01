@@ -1,6 +1,6 @@
 {
   "name": "adaptive-subagents",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Optimize token cost by routing all actionable work to the cheapest model tier that satisfies quality. Delegates mechanical lookups to Haiku, implementation/comprehension to Sonnet, and architecture/security to Opus.",
   "author": {
     "name": "maleko91"
@@ -14,34 +14,13 @@
     "cost-saving"
   ],
   "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "adaptive-subagents is active. Route delegations to the cheapest model that satisfies quality: Haiku for mechanical lookups only (grep, glob, file existence), Sonnet for comprehension or code changes, Opus for architecture/security/ambiguity. If the user says 'no routing', 'don't delegate', 'use Opus', 'use Sonnet', or 'use Haiku', respect that override for this request. If another workflow skill is orchestrating, apply model-tier routing to its tasks without restructuring the work."
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "^Agent$",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Check: is this the cheapest model that satisfies quality? Haiku for mechanical lookups only (grep, glob, file existence). Sonnet for anything requiring comprehension or code changes. Opus only for architecture/security/ambiguity. Output '**Routing to {Model}:** {reason}' before proceeding."
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "matcher": "^Agent$",
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "A subagent just completed. Log this delegation to routing-log.md (do not delegate this logging step).\n\nIf routing-log.md does not exist yet, create it using this header:\n| Model | Category | Cost | Task |\n|-------|----------|------|------|\n\nThen append exactly one row with Edit:\n| {model} | {category} | {1x/3x/15x} | {brief task description} |\n\nHaiku=1x, Sonnet=3x, Opus=15x. Always log before continuing to the next step."
+            "prompt": "A subagent just completed. Log this delegation to routing-log.md (do not delegate this logging step).\n\nIf routing-log.md does not exist yet, create it with the Write tool:\n| Model | Category | Cost | Task |\n|-------|----------|------|------|\n\nThen append one row using Edit (Read the file first if you haven't already):\n| {model} | {category} | {1x/3x/15x} | {brief task description} |\n\nHaiku=1x, Sonnet=3x, Opus=15x. If logging fails for any reason, continue to the next step — do not retry or block."
           }
         ]
       }
