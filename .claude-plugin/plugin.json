@@ -19,8 +19,8 @@
         "matcher": "^Agent$",
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "A subagent just completed. Log this delegation to routing-log.md (do not delegate this logging step).\n\nIf routing-log.md does not exist yet, create it with the Write tool:\n| Model | Category | Cost | Task |\n|-------|----------|------|------|\n\nThen append one row using Edit (Read the file first if you haven't already):\n| {model} | {category} | {1x/3x/15x} | {brief task description} |\n\nHaiku=1x, Sonnet=3x, Opus=15x. If logging fails for any reason, continue to the next step — do not retry or block."
+            "type": "command",
+            "command": "node .claude-plugin/hooks/log-delegation.js"
           }
         ]
       }
