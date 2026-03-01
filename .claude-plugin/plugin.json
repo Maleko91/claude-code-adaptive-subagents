@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude-plugin/hooks/log-delegation.js"
+            "command": "node -e \"var d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>require('fs').appendFileSync('routing.log',d+'\\n'))\""
           }
         ]
       }

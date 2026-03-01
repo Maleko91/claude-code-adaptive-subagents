@@ -123,7 +123,6 @@ After all phases return, review outputs for conflicts before applying.
 If the user says any of the following, respect it for the current request:
 - **"no routing"** / **"don't delegate"** — handle everything inline on the current model.
 - **"use Opus"** / **"use Sonnet"** / **"use Haiku"** — force that tier for all delegations.
-- **"skip logging"** — suppress routing-log entries for this request.
 
 Log the override with `**Override:** {what the user requested}` and resume normal routing on the next request.
 

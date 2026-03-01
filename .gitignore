@@ -2,4 +2,4 @@
 .claude/settings.json
 
 # Routing logs generated at runtime
-routing-log.md
+routing.log
