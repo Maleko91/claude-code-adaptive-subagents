@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"additionalContext\": \"The adaptive-subagents skill is available. Invoke Skill(skill: adaptive-subagents) to route work to cheaper models before starting.\"}'"
+            "command": "echo 'The adaptive-subagents skill is available. Invoke Skill(skill: adaptive-subagents) to route work to cheaper models before starting.'"
           }
         ]
       }

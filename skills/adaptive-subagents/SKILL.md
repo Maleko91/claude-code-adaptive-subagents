@@ -1,7 +1,7 @@
 ---
 name: adaptive-subagents
 user-invokable: true
-description: "DEFAULT SKILL — activate BEFORE starting ANY work that involves reading, editing, or creating files. Routes work to the cheapest sufficient model, saving 3–15x on token costs.\nDO NOT TRIGGER only when: single-line fix, trivial question, or user says 'no routing'."
+description: "Use this skill when the user asks to create, build, implement, add, update, write, document, refactor, debug, fix, optimize, or migrate something. Routes subtasks to the cheapest sufficient model (Haiku/Sonnet), saving 3-15x on token costs."
 ---
 
 # Adaptive Subagent Routing
