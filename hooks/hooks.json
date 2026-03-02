@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"additionalContext\": \"ROUTING REMINDER: The adaptive-subagents skill is installed. Consider invoking Skill(skill: adaptive-subagents) when delegating work to cheaper models would save tokens.\"}'"
+          }
+        ]
+      }
+    ]
+  }
+}
