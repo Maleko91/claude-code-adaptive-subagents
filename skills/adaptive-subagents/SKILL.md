@@ -1,7 +1,7 @@
 ---
 name: adaptive-subagents
 user-invokable: true
-description: "Optimize token cost by routing work to the cheapest sufficient model via the Agent tool.\nTRIGGER when: any task that touches code or files — editing, adding content, implementation, debugging, refactoring, search, exploration, test writing, code review, multi-file changes, or any task requiring reading before writing.\nDO NOT TRIGGER when: single-line fix, trivial question, or user says 'no routing'."
+description: "DEFAULT SKILL — activate BEFORE starting ANY work that involves reading, editing, or creating files. Routes work to the cheapest sufficient model, saving 3–15x on token costs.\nDO NOT TRIGGER only when: single-line fix, trivial question, or user says 'no routing'."
 ---
 
 # Adaptive Subagent Routing
