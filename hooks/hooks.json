@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"additionalContext\": \"ROUTING REMINDER: The adaptive-subagents skill is installed. Consider invoking Skill(skill: adaptive-subagents) when delegating work to cheaper models would save tokens.\"}'"
+            "command": "echo '{\"additionalContext\": \"The adaptive-subagents skill is available. Invoke Skill(skill: adaptive-subagents) to route work to cheaper models before starting.\"}'"
           }
         ]
       }
