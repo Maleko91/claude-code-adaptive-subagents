@@ -8,7 +8,8 @@
       "Read(//d/Git/**)",
       "Bash(wc -l /d/Git/BoardGameAccess/.agents/skills/bmad-*/SKILL.md)",
       "Bash(ls -d /d/Git/BoardGameAccess/.agents/skills/bmad-*)",
-      "Bash(ls /d/Git/BoardGameAccess/.agents/skills/bmad-*)"
+      "Bash(ls /d/Git/BoardGameAccess/.agents/skills/bmad-*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }
