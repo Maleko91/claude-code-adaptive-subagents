@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'SKILL EVALUATION REQUIRED: Before responding, evaluate the adaptive-subagents skill. Does this request involve work where subtasks could be delegated to cheaper models? State your evaluation: ACTIVATE adaptive-subagents or SKIP adaptive-subagents, with a one-line reason. If ACTIVATE, you must call Skill(skill: adaptive-subagents) before doing any other work.'"
+            "command": "echo 'SKILL EVALUATION REQUIRED: Before responding, evaluate the adaptive-subagents skill. Does the user want something done? ACTIVATE. Only SKIP for pure questions or conversation with no actionable work. State your evaluation: ACTIVATE adaptive-subagents or SKIP adaptive-subagents, with a one-line reason. If ACTIVATE, you must call Skill(skill: adaptive-subagents) before doing any other work.'"
           }
         ]
       }
